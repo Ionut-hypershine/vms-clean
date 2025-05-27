@@ -1,8 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, request, redirect, url_for, session
 from auth import users
 
 app = Flask(__name__)
 app.secret_key = 'supersecret'
+
+payslips = []  # Listă simplă în memorie pentru test
 
 @app.route("/")
 def home():
@@ -27,7 +29,19 @@ def login():
 def admin():
     if "username" not in session:
         return redirect(url_for("login"))
-    return render_template("admin.html", user=session['username'])
+    return render_template("admin.html", user=session['username'], payslips=payslips)
+
+@app.route("/add", methods=["GET", "POST"])
+def add_payslip():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        name = request.form["name"]
+        amount = request.form["amount"]
+        week = request.form["week"]
+        payslips.append({"name": name, "amount": amount, "week": week})
+        return redirect(url_for("admin"))
+    return render_template("add_payslip.html")
 
 @app.route("/logout")
 def logout():
