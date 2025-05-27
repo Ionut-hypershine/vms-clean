@@ -1,10 +1,16 @@
+import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session
 from auth import users
 
 app = Flask(__name__)
 app.secret_key = 'supersecret'
+DB_PATH = 'vms.db'
 
-payslips = []  # Listă simplă în memorie pentru test
+def get_payslips():
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute("SELECT name, amount, week, created_at FROM payslips ORDER BY id DESC")
+        return c.fetchall()
 
 @app.route("/")
 def home():
@@ -29,7 +35,8 @@ def login():
 def admin():
     if "username" not in session:
         return redirect(url_for("login"))
-    return render_template("admin.html", user=session['username'], payslips=payslips)
+    slips = get_payslips()
+    return render_template("admin.html", user=session['username'], payslips=slips)
 
 @app.route("/add", methods=["GET", "POST"])
 def add_payslip():
@@ -39,7 +46,10 @@ def add_payslip():
         name = request.form["name"]
         amount = request.form["amount"]
         week = request.form["week"]
-        payslips.append({"name": name, "amount": amount, "week": week})
+        with sqlite3.connect(DB_PATH) as conn:
+            c = conn.cursor()
+            c.execute("INSERT INTO payslips (name, amount, week) VALUES (?, ?, ?)", (name, amount, week))
+            conn.commit()
         return redirect(url_for("admin"))
     return render_template("add_payslip.html")
 
