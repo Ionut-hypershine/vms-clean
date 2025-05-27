@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><title>Adaugă Fluturaș</title></head>
+<body>
+  <h2>Adaugă Fluturaș</h2>
+  <form method="post">
+    <label>Nume angajat:</label><input name="name"><br>
+    <label>Suma:</label><input name="amount" type="number"><br>
+    <label>Săptămâna:</label><input name="week"><br>
+    <button type="submit">Salvează</button>
+  </form>
+  <p><a href="{{ url_for('admin') }}">Înapoi la panou</a></p>
+</body>
+</html>
