@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Adaugă Job</title></head>
+<body>
+  <h2>Adaugă Job</h2>
+  <form method="post">
+    <label>Titlu job:</label><input name="title"><br>
+    <label>Locație:</label><input name="location"><br>
+    <button type="submit">Salvează</button>
+  </form>
+  <p><a href="{{ url_for('admin') }}">Înapoi la panou</a></p>
+</body>
+</html>

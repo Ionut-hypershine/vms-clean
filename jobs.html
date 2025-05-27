@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Lista Joburi</title></head>
+<body>
+  <h2>Lista Joburi</h2>
+  <ul>
+    {% for job in jobs %}
+      <li>{{ job[0] }} - {{ job[1] }} ({{ job[2] }})</li>
+    {% else %}
+      <li>Niciun job înregistrat.</li>
+    {% endfor %}
+  </ul>
+  <p><a href="{{ url_for('admin') }}">Înapoi la panou</a></p>
+</body>
+</html>

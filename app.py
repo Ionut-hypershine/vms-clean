@@ -12,6 +12,12 @@ def get_payslips():
         c.execute("SELECT name, amount, week, created_at FROM payslips ORDER BY id DESC")
         return c.fetchall()
 
+def get_jobs():
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute("SELECT title, location, created_at FROM jobs ORDER BY id DESC")
+        return c.fetchall()
+
 @app.route("/")
 def home():
     if "username" in session:
@@ -52,6 +58,27 @@ def add_payslip():
             conn.commit()
         return redirect(url_for("admin"))
     return render_template("add_payslip.html")
+
+@app.route("/jobs")
+def jobs():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    all_jobs = get_jobs()
+    return render_template("jobs.html", jobs=all_jobs)
+
+@app.route("/add-job", methods=["GET", "POST"])
+def add_job():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        title = request.form["title"]
+        location = request.form["location"]
+        with sqlite3.connect(DB_PATH) as conn:
+            c = conn.cursor()
+            c.execute("INSERT INTO jobs (title, location) VALUES (?, ?)", (title, location))
+            conn.commit()
+        return redirect(url_for("jobs"))
+    return render_template("add_job.html")
 
 @app.route("/logout")
 def logout():
