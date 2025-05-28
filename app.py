@@ -58,7 +58,7 @@ def add_payslip():
             conn.commit()
         return redirect(url_for("admin"))
     return render_template("add_payslip.html")
-@app.route("/jobs")
+@@app.route("/jobs")
 def jobs():
     conn = sqlite3.connect("vms.db")
     c = conn.cursor()
@@ -66,7 +66,6 @@ def jobs():
     jobs = c.fetchall()
     conn.close()
     return render_template("jobs.html", jobs=jobs)
-
 @app.route("/add-job", methods=["GET", "POST"])
 def add_job():
     if "username" not in session:
