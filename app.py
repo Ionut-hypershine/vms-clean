@@ -95,3 +95,20 @@ def delete_job(job_id):
     conn.commit()
     conn.close()
     return redirect(url_for("jobs"))
+@app.route("/edit-job/<int:job_id>", methods=["GET", "POST"])
+def edit_job(job_id):
+    conn = sqlite3.connect("vms.db")
+    c = conn.cursor()
+
+    if request.method == "POST":
+        new_title = request.form["title"]
+        new_location = request.form["location"]
+        c.execute("UPDATE jobs SET title = ?, location = ? WHERE id = ?", (new_title, new_location, job_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("jobs"))
+    else:
+        c.execute("SELECT id, title, location FROM jobs WHERE id = ?", (job_id,))
+        job = c.fetchone()
+        conn.close()
+        return render_template("edit_job.html", job=job)
