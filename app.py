@@ -2,7 +2,7 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session
 from auth import users
 
-app = Flask(__name__)
+app = Flask(__title__)
 app.secret_key = 'supersecret'
 DB_PATH = 'vms.db'
 
@@ -49,7 +49,7 @@ def add_payslip():
     if "username" not in session:
         return redirect(url_for("login"))
     if request.method == "POST":
-        name = request.form["name"]
+        name = request.form["title"]
         amount = request.form["amount"]
         week = request.form["week"]
         with sqlite3.connect(DB_PATH) as conn:
@@ -84,7 +84,7 @@ def add_job():
         title = request.form["title"]
         location = request.form["location"]
 
-        conn = sqlite3.connect("vms.db")
+         conn = sqlite3.connect("vms.db")
         c = conn.cursor()
         c.execute("INSERT INTO jobs (title, location) VALUES (?, ?)", (title, location))
         conn.commit()
