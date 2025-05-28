@@ -111,4 +111,20 @@ def edit_job(job_id):
         c.execute("SELECT id, title, location FROM jobs WHERE id = ?", (job_id,))
         job = c.fetchone()
         conn.close()
-        return render_template("edit_job.html", job=job)
+        return render_template("edit_job.html", job=job)@app.route("/assign/<int:job_id>", methods=["GET", "POST"])
+def assign_employee(job_id):
+    conn = sqlite3.connect("vms.db")
+    c = conn.cursor()
+
+    if request.method == "POST":
+        user_id = request.form["user_id"]
+        c.execute("INSERT INTO assignments (user_id, job_id) VALUES (?, ?)", (user_id, job_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("jobs"))
+
+    # Selectăm toți utilizatorii
+    c.execute("SELECT id, username FROM users")
+    users = c.fetchall()
+    conn.close()
+    return render_template("assign_employee.html", users=users, job_id=job_id)
