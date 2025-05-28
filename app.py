@@ -113,7 +113,9 @@ def edit_job(job_id):
     c = conn.cursor()
 
     if request.method == "POST":
-        new_title = request.form["title"]
+       job["title"]
+sau
+job.title
         new_location = request.form["location"]
         c.execute("UPDATE jobs SET title = ?, location = ? WHERE id = ?", (new_title, new_location, job_id))
         conn.commit()
