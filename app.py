@@ -58,8 +58,14 @@ def add_payslip():
             conn.commit()
         return redirect(url_for("admin"))
     return render_template("add_payslip.html")
-
 @app.route("/jobs")
+def jobs():
+    conn = sqlite3.connect("vms.db")
+    c = conn.cursor()
+    c.execute("SELECT id, title, location FROM jobs ORDER BY created_at DESC")
+    jobs = c.fetchall()
+    conn.close()
+    return render_template("jobs.html", jobs=jobs)@app.route("/jobs")
 def jobs():
     if "username" not in session:
         return redirect(url_for("login"))
