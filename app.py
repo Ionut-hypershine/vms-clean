@@ -64,8 +64,20 @@ def jobs():
     c = conn.cursor()
     c.execute("SELECT id, title, location FROM jobs ORDER BY id DESC")
     jobs = c.fetchall()
+
+    job_assignments = {}
+    for job in jobs:
+        job_id = job[0]
+        c.execute("""
+            SELECT users.username FROM assignments
+            JOIN users ON assignments.user_id = users.id
+            WHERE assignments.job_id = ?
+        """, (job_id,))
+        assigned_users = c.fetchall()
+        job_assignments[job_id] = [user[0] for user in assigned_users]
+
     conn.close()
-    return render_template("jobs.html", jobs=jobs)
+    return render_template("jobs.html", jobs=jobs, assignments=job_assignments)
 @app.route("/add-job", methods=["GET", "POST"])
 def add_job():
     if "username" not in session:
