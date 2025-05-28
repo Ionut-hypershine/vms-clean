@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Editează Job</title></head>
+<body>
+  <h2>Editează Job</h2>
+  <form method="POST">
+    <label>Titlu job:</label><br>
+    <input type="text" name="title" value="{{ job[1] }}" required><br><br>
+
+    <label>Locație:</label><br>
+    <input type="text" name="location" value="{{ job[2] }}" required><br><br>
+
+    <button type="submit">Salvează modificările</button>
+  </form>
+  <p><a href="{{ url_for('jobs') }}">Înapoi la lista joburilor</a></p>
+</body>
+</html>
