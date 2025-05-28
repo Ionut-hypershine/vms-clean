@@ -1,144 +1,74 @@
-import sqlite3
+
 from flask import Flask, render_template, request, redirect, url_for, session
-from auth import users
+import sqlite3
+import hashlib
+from datetime import datetime
 
-app = Flask(__title__)
-app.secret_key = 'supersecret'
-DB_PATH = 'vms.db'
+app = Flask(__name__)
+app.secret_key = 'secret123'
 
-def get_payslips():
-    with sqlite3.connect(DB_PATH) as conn:
-        c = conn.cursor()
-        c.execute("SELECT name, amount, week, created_at FROM payslips ORDER BY id DESC")
-        return c.fetchall()
+def get_db_connection():
+    conn = sqlite3.connect('vms.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
-def get_jobs():
-    with sqlite3.connect(DB_PATH) as conn:
-        c = conn.cursor()
-        c.execute("SELECT title, location, created_at FROM jobs ORDER BY id DESC")
-        return c.fetchall()
-
-@app.route("/")
+@app.route('/')
 def home():
-    if "username" in session:
-        return redirect(url_for("admin"))
-    return redirect(url_for("login"))
+    if 'user_id' in session:
+        return redirect('/admin')
+    return redirect('/login')
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        if username in users and users[username] == password:
-            session["username"] = username
-            return redirect(url_for("admin"))
+    if request.method == 'POST':
+        username = request.form['username']
+        password = hashlib.sha256(request.form['password'].encode()).hexdigest()
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password)).fetchone()
+        conn.close()
+        if user:
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['is_admin'] = user['is_admin']
+            return redirect('/admin')
         else:
-            error = "Invalid credentials"
-    return render_template("login.html", error=error)
+            error = 'Nume sau parolă greșită.'
+    return render_template('login.html', error=error)
 
-@app.route("/admin")
-def admin():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    slips = get_payslips()
-    return render_template("admin.html", user=session['username'], payslips=slips)
-
-@app.route("/add", methods=["GET", "POST"])
-def add_payslip():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    if request.method == "POST":
-        name = request.form["title"]
-        amount = request.form["amount"]
-        week = request.form["week"]
-        with sqlite3.connect(DB_PATH) as conn:
-            c = conn.cursor()
-            c.execute("INSERT INTO payslips (name, amount, week) VALUES (?, ?, ?)", (name, amount, week))
-            conn.commit()
-        return redirect(url_for("admin"))
-    return render_template("add_payslip.html")
-@app.route("/jobs")
-def jobs():
-    conn = sqlite3.connect("vms.db")
-    c = conn.cursor()
-    c.execute("SELECT id, title, location FROM jobs ORDER BY id DESC")
-    jobs = c.fetchall()
-
-    job_assignments = {}
-    for job in jobs:
-        job_id = job[0]
-        c.execute("""
-            SELECT users.username FROM assignments
-            JOIN users ON assignments.user_id = users.id
-            WHERE assignments.job_id = ?
-        """, (job_id,))
-        assigned_users = c.fetchall()
-        job_assignments[job_id] = [user[0] for user in assigned_users]
-
-    conn.close()
-    return render_template("jobs.html", jobs=jobs, assignments=job_assignments)
-@app.route("/add-job", methods=["GET", "POST"])
-def add_job():
-    if request.method == "POST":
-        title = request.form["title"]
-        location = request.form["location"]
-
-         conn = sqlite3.connect("vms.db")
-        c = conn.cursor()
-        c.execute("INSERT INTO jobs (title, location) VALUES (?, ?)", (title, location))
-        conn.commit()
-        conn.close()
-        return redirect(url_for("jobs"))
-
-    return render_template("add_job.html")
-@app.route("/logout")
+@app.route('/logout')
 def logout():
-    session.pop("username", None)
-    return redirect(url_for("login"))
+    session.clear()
+    return redirect('/login')
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
-@app.route("/delete-job/<int:job_id>")
-def delete_job(job_id):
-    conn = sqlite3.connect("vms.db")
-    c = conn.cursor()
-    c.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
-    conn.commit()
+@app.route('/admin')
+def admin_dashboard():
+    if not session.get('is_admin'):
+        return redirect('/login')
+    return render_template('admin_dashboard.html', username=session['username'])
+
+@app.route('/jobs')
+def list_jobs():
+    if not session.get('is_admin'):
+        return redirect('/login')
+    conn = get_db_connection()
+    jobs = conn.execute('SELECT * FROM jobs').fetchall()
     conn.close()
-    return redirect(url_for("jobs"))
-@app.route("/edit-job/<int:job_id>", methods=["GET", "POST"])
-def edit_job(job_id):
-    conn = sqlite3.connect("vms.db")
-    c = conn.cursor()
+    return render_template('jobs.html', jobs=jobs)
 
-    if request.method == "POST":
-       job["title"]
-sau
-job.title
-        new_location = request.form["location"]
-        c.execute("UPDATE jobs SET title = ?, location = ? WHERE id = ?", (new_title, new_location, job_id))
+@app.route('/add-job', methods=['GET', 'POST'])
+def add_job():
+    if not session.get('is_admin'):
+        return redirect('/login')
+    if request.method == 'POST':
+        title = request.form['title']
+        location = request.form['location']
+        conn = get_db_connection()
+        conn.execute('INSERT INTO jobs (title, location) VALUES (?, ?)', (title, location))
         conn.commit()
         conn.close()
-        return redirect(url_for("jobs"))
-    else:
-        c.execute("SELECT id, title, location FROM jobs WHERE id = ?", (job_id,))
-        job = c.fetchone()
-        conn.close()
-        return render_template("edit_job.html", job=job)@app.route("/assign/<int:job_id>", methods=["GET", "POST"])
-def assign_employee(job_id):
-    conn = sqlite3.connect("vms.db")
-    c = conn.cursor()
+        return redirect('/jobs')
+    return render_template('add_job.html')
 
-    if request.method == "POST":
-        user_id = request.form["user_id"]
-        c.execute("INSERT INTO assignments (user_id, job_id) VALUES (?, ?)", (user_id, job_id))
-        conn.commit()
-        conn.close()
-        return redirect(url_for("jobs"))
-
-    # Selectăm toți utilizatorii
-    c.execute("SELECT id, username FROM users")
-    users = c.fetchall()
-    conn.close()
-    return render_template("assign_employee.html", users=users, job_id=job_id)
+if __name__ == '__main__':
+    app.run(debug=True)
