@@ -93,3 +93,11 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+@app.route("/delete-job/<int:job_id>")
+def delete_job(job_id):
+    conn = sqlite3.connect("vms.db")
+    c = conn.cursor()
+    c.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("jobs"))
