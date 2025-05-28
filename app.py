@@ -62,15 +62,10 @@ def add_payslip():
 def jobs():
     conn = sqlite3.connect("vms.db")
     c = conn.cursor()
-    c.execute("SELECT id, title, location FROM jobs ORDER BY created_at DESC")
+    c.execute("SELECT id, title, location FROM jobs ORDER BY id DESC")
     jobs = c.fetchall()
     conn.close()
-    return render_template("jobs.html", jobs=jobs)@app.route("/jobs")
-def jobs():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    all_jobs = get_jobs()
-    return render_template("jobs.html", jobs=all_jobs)
+    return render_template("jobs.html", jobs=jobs)
 
 @app.route("/add-job", methods=["GET", "POST"])
 def add_job():
