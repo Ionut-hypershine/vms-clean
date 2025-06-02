@@ -92,3 +92,21 @@ def add_car():
         return redirect('/cars')
 
     return render_template('add_car.html')
+@app.route('/cars')
+def list_cars():
+    if 'user_id' not in session:
+        return redirect('/login')
+    conn = get_db_connection()
+    cars = conn.execute('SELECT cars.*, users.username FROM cars JOIN users ON users.id = cars.added_by').fetchall()
+    conn.close()
+    return render_template('cars.html', cars=cars)
+
+@app.route('/update-status/<int:car_id>/<status>')
+def update_car_status(car_id, status):
+    if 'user_id' not in session:
+        return redirect('/login')
+    conn = get_db_connection()
+    conn.execute('UPDATE cars SET status = ? WHERE id = ?', (status, car_id))
+    conn.commit()
+    conn.close()
+    return redirect('/cars')
