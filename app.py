@@ -72,3 +72,23 @@ def add_job():
 
 if __name__ == '__main__':
     app.run(debug=True)
+@app.route('/add-car', methods=['GET', 'POST'])
+def add_car():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    if request.method == 'POST':
+        vin = request.form['vin']
+        representative = request.form['representative']
+        scheduled_time = request.form['scheduled_time']
+        added_by = session['user_id']
+        status = 'în așteptare'
+
+        conn = get_db_connection()
+        conn.execute('INSERT INTO cars (vin, representative, added_by, scheduled_time, status) VALUES (?, ?, ?, ?, ?)',
+                     (vin, representative, added_by, scheduled_time, status))
+        conn.commit()
+        conn.close()
+        return redirect('/cars')
+
+    return render_template('add_car.html')
