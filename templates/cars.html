@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><title>Mașini programate</title></head>
+<body>
+  <h2>Mașini programate</h2>
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>VIN</th>
+      <th>Reprezentanță</th>
+      <th>Programare</th>
+      <th>Status</th>
+      <th>Acțiune</th>
+    </tr>
+    {% for car in cars %}
+    <tr>
+      <td>{{ car.vin }}</td>
+      <td>{{ car.representative }}</td>
+      <td>{{ car.scheduled_time }}</td>
+      <td>{{ car.status }}</td>
+      <td>
+        {% if car.status == 'în așteptare' %}
+          <a href="/update-status/{{ car.id }}/în lucru">Start</a>
+        {% elif car.status == 'în lucru' %}
+          <a href="/update-status/{{ car.id }}/finalizat">Finish</a>
+        {% else %}
+          Finalizat
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
